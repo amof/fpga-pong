@@ -39,6 +39,18 @@ COMPONENT VGA 	PORT(
 		);
 END COMPONENT;
 
+COMPONENT VGA_ctrl 	PORT(
+	VGA_R : OUT unsigned(9 downto 0);
+	VGA_B : OUT unsigned(9 downto 0);
+	VGA_G : OUT unsigned(9 downto 0);
+	
+	UP, DOWN : IN STD_LOGIC;
+	PIX_X, PIX_Y : IN integer ;
+	VGA_CLK : IN std_logic
+	
+);
+END COMPONENT;
+
 COMPONENT BUTTONS PORT
 (
 	BOUTONS : IN unsigned(3 downto 0);
@@ -68,6 +80,7 @@ begin
 U0 : BUTTONS PORT MAP(iKEY, UP, DOWN, RST_N, MCLK);
 U1 : VGA PORT MAP(clk_25MHz, oVGA_HS, oVGA_VS, oVGA_BLANK_N, oVGA_SYNC_N, Xcnt,Ycnt );
 U2 : ClockPrescaler PORT MAP(clk_25MHz, RST_N, MCLK);
+U3 : VGA_ctrl PORT MAP(oVGA_R, oVGA_B, oVGA_G, UP, DOWN, Xcnt, Ycnt, MCLK);
 
 ---affectation des signaux 
 
@@ -86,9 +99,6 @@ oVGA_CLOCK<=clk_25MHz;
 			ELSE
 				RST_N <= '1';
 				oLEDR(0) <= '0';
-				oVGA_B<="0011001100";
-				oVGA_G<="1111111111";
-				oVGA_R<="0011001100";
 			END IF;		
 		END IF;	
 	END PROCESS;	
