@@ -3,16 +3,19 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 ENTITY VGA_ctrl IS 
 	GENERIC(
-		Bar_H:	INTEGER:=40;  	-- Hpulse
-		Bar_W:	INTEGER:=15;  	-- Hpulse
-		Bar_A:	INTEGER:=1;  	-- Hpulse
-		Bar_I_X:	INTEGER:=10;  	-- Hpulse
-		Bar_I_Y:	INTEGER:=10;  -- Hpulse
-		Bard_H:	INTEGER:=40;  	-- Hpulse
-		Bard_W:	INTEGER:=15;  	-- Hpulse
-		Bard_A:	INTEGER:=1;  	-- Hpulse
-		Bard_I_X:	INTEGER:=610;  	-- Hpulse
-		Bard_I_Y:	INTEGER:=10;  -- Hpulse
+	-- LEFT bar
+		Bar_H:	INTEGER:=40;  	-- height of the bar
+		Bar_W:	INTEGER:=15;  	-- width of the bar
+		Bar_A:	INTEGER:=1;  	-- bar speed
+		Bar_I_X:	INTEGER:=10;  	-- x bar position 
+		Bar_I_Y:	INTEGER:=10;  	-- y bar postion
+	-- RIGHT bar
+		Bard_H:	INTEGER:=40;  	-- height of the bar
+		Bard_W:	INTEGER:=15;  	-- width of the bar
+		Bard_A:	INTEGER:=1;  	-- bar speed
+		Bard_I_X:	INTEGER:=610;  	-- x bar position
+		Bard_I_Y:	INTEGER:=10;  -- y bar postion
+	-- BALL
 		Ball_H:	INTEGER:=20;  	-- Hpulse
 		Ball_W:	INTEGER:=20;  	-- Hpulse
 		Ball_A:	INTEGER:=1;  	-- Hpulse
@@ -45,15 +48,17 @@ begin
 	VARIABLE posdY : integer := Bard_I_Y;
 	BEGIN
 		IF rising_edge(VGA_CLK) THEN
-			IF UP='1' THEN
+		-- BAR MOVES
+			IF UP='1' and (posY+Bar_H) < 474  THEN
 				posY:= posY+5 ;
-			ELSIF UPd='1' THEN
-				posdY:= posdY+5 ;
-			ELSIF DOWN='1' THEN
+			ELSIF DOWN='1' and posY > 5 THEN
 				posY:= posY-5;
-			ELSIF DOWNd='1' THEN
+			ELSIF UPd='1' and (posdY+Bard_H) < 474 THEN
+				posdY:= posdY+5 ;
+			ELSIF DOWNd='1' and posdY > 5 THEN
 				posdY:= posdY-5;
 			END IF;
+		-- PRINTING ON THE SCREEN
 			IF (PIX_X < 5 or PIX_X >634 or PIX_Y <5 or PIX_Y > 474) THEN 
 				VGA_R<= MALUT(1);
 				VGA_B<= MALUT(1);

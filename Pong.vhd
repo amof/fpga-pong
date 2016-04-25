@@ -25,6 +25,7 @@ ARCHITECTURE ARCH OF Pong IS
 
 
 SIGNAL UP, DOWN : STD_logic;
+SIGNAL UPd, DOWNd : STD_logic;
 SIGNAL RST_N, MCLK : STD_logic;
 SIGNAL CPT		: integer := 0;
 SIGNAL clk_25MHz:std_LOGIC;
@@ -43,11 +44,11 @@ COMPONENT VGA_ctrl 	PORT(
 	VGA_R : OUT unsigned(9 downto 0);
 	VGA_B : OUT unsigned(9 downto 0);
 	VGA_G : OUT unsigned(9 downto 0);
-	
 	UP, DOWN : IN STD_LOGIC;
+	UPd, DOWNd : IN STD_LOGIC;
 	PIX_X, PIX_Y : IN integer ;
-	VGA_CLK : IN std_logic
-	
+	VGA_CLK : IN std_logic;
+	clk:IN std_LOGIC
 );
 END COMPONENT;
 
@@ -55,10 +56,10 @@ COMPONENT BUTTONS PORT
 (
 	BOUTONS : IN unsigned(3 downto 0);
 	UP, DOWN : OUT STD_LOGIC;
+	UPd, DOWNd : OUT STD_LOGIC;
 	--------SYSTEMS signals
 	RST_N : IN STD_LOGIC;
 	MCLK : IN STD_LOGIC
-	
 );
 END COMPONENT;
 
@@ -77,10 +78,10 @@ begin
 
 ---instantiations composants
 
-U0 : BUTTONS PORT MAP(iKEY, UP, DOWN, RST_N, MCLK);
+U0 : BUTTONS PORT MAP(iKEY, UP, DOWN, UPd, DOWNd, RST_N, MCLK);
 U1 : VGA PORT MAP(clk_25MHz, oVGA_HS, oVGA_VS, oVGA_BLANK_N, oVGA_SYNC_N, Xcnt,Ycnt );
 U2 : ClockPrescaler PORT MAP(clk_25MHz, RST_N, MCLK);
-U3 : VGA_ctrl PORT MAP(oVGA_R, oVGA_B, oVGA_G, UP, DOWN, Xcnt, Ycnt, MCLK);
+U3 : VGA_ctrl PORT MAP(oVGA_R, oVGA_B, oVGA_G, UP, DOWN, UPd, DOWNd, Xcnt, Ycnt, MCLK, clk_25MHz);
 
 ---affectation des signaux 
 
