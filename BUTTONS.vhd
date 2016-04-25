@@ -39,16 +39,16 @@ begin
 					PREC_BOUTON1 <= BOUTONS(1);
 					PREC_BOUTON2 <= BOUTONS(2);
 					PREC_BOUTON3 <= BOUTONS(3);
-					IF  BOUTONS(0)='0' AND PREC_BOUTON0 = '0' THEN
+					IF  BOUTONS(0)='0' AND (PREC_BOUTON0 = '0' or PREC_BOUTON0 = '1') THEN
 						UPd<='1';
 					END IF;
-					IF  (BOUTONS(1)='0')  AND PREC_BOUTON1 = '0' THEN
+					IF  (BOUTONS(1)='0')  AND (PREC_BOUTON1 = '0' or PREC_BOUTON1 = '1') THEN
 						DOWNd<='1';
 					END IF;
-					IF  BOUTONS(2)='0' AND PREC_BOUTON2 = '0' THEN
+					IF  BOUTONS(2)='0' AND (PREC_BOUTON2 = '0' or PREC_BOUTON2 = '1') THEN
 						UP<='1';
 					END IF;
-					IF  (BOUTONS(3)='0')  AND PREC_BOUTON3 = '0' THEN
+					IF  (BOUTONS(3)='0')  AND (PREC_BOUTON3 = '0' or PREC_BOUTON3 = '1') THEN
 						DOWN<='1';
 					END IF;
 				ELSE
