@@ -29,6 +29,7 @@ SIGNAL UPd, DOWNd : STD_logic;
 SIGNAL RST_N, MCLK : STD_logic;
 SIGNAL CPT		: integer := 0;
 SIGNAL clk_25MHz:std_LOGIC;
+SIGNAL clk_25Hz:std_LOGIC;
 SIGNAL Xcnt, Ycnt:	INTEGER ;
 	
 ----déclaration des composants BUTTONS et SEGMENTS 
@@ -47,8 +48,8 @@ COMPONENT VGA_ctrl 	PORT(
 	UP, DOWN : IN STD_LOGIC;
 	UPd, DOWNd : IN STD_LOGIC;
 	PIX_X, PIX_Y : IN integer ;
-	VGA_CLK : IN std_logic;
-	clk:IN std_LOGIC
+	MCLK : IN std_logic;
+	clk_ball:IN std_logic
 );
 END COMPONENT;
 
@@ -66,6 +67,7 @@ END COMPONENT;
 COMPONENT ClockPrescaler PORT
 (
 	clk_25MHZ : OUT STD_LOGIC;
+	clk_25HZ : OUT STD_LOGIC;
 	--------SYSTEMS signals
 	RST_N : IN STD_LOGIC;
 	MCLK : IN STD_LOGIC
@@ -80,8 +82,8 @@ begin
 
 U0 : BUTTONS PORT MAP(iKEY, UP, DOWN, UPd, DOWNd, RST_N, MCLK);
 U1 : VGA PORT MAP(clk_25MHz, oVGA_HS, oVGA_VS, oVGA_BLANK_N, oVGA_SYNC_N, Xcnt,Ycnt );
-U2 : ClockPrescaler PORT MAP(clk_25MHz, RST_N, MCLK);
-U3 : VGA_ctrl PORT MAP(oVGA_R, oVGA_B, oVGA_G, UP, DOWN, UPd, DOWNd, Xcnt, Ycnt, MCLK, clk_25MHz);
+U2 : ClockPrescaler PORT MAP(clk_25MHz, clk_25Hz, RST_N, MCLK);
+U3 : VGA_ctrl PORT MAP(oVGA_R, oVGA_B, oVGA_G, UP, DOWN, UPd, DOWNd, Xcnt, Ycnt, MCLK, clk_25Hz);
 
 ---affectation des signaux 
 

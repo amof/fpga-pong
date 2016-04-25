@@ -8,19 +8,20 @@ ENTITY VGA_ctrl IS
 		Bar_W:	INTEGER:=15;  	-- width of the bar
 		Bar_A:	INTEGER:=1;  	-- bar speed
 		Bar_I_X:	INTEGER:=10;  	-- x bar position 
-		Bar_I_Y:	INTEGER:=10;  	-- y bar postion
+		Bar_I_Y:	INTEGER:=220;  	-- y bar postion
 	-- RIGHT bar
 		Bard_H:	INTEGER:=40;  	-- height of the bar
 		Bard_W:	INTEGER:=15;  	-- width of the bar
 		Bard_A:	INTEGER:=1;  	-- bar speed
 		Bard_I_X:	INTEGER:=610;  	-- x bar position
-		Bard_I_Y:	INTEGER:=10;  -- y bar postion
+		Bard_I_Y:	INTEGER:=220;  -- y bar postion
 	-- BALL
-		Ball_H:	INTEGER:=20;  	-- Hpulse
-		Ball_W:	INTEGER:=20;  	-- Hpulse
-		Ball_A:	INTEGER:=1;  	-- Hpulse
-		Ball_I_X:	INTEGER:=100;  	-- Hpulse
-		Ball_I_Y:	INTEGER:=100);  -- Hpulse
+		Ball_H:	INTEGER:=10;  	-- height of the ball
+		Ball_W:	INTEGER:=10;  	-- width of the ball
+		Ball_Speed_X_I:	INTEGER:=-5;  	-- bar speed X
+		Ball_Speed_Y_I:	INTEGER:=0;  	-- bar speed Y
+		Ball_I_X:	INTEGER:=220;  	-- x bar position
+		Ball_I_Y:	INTEGER:=220);  -- y bar postion
 PORT(
 	VGA_R : OUT unsigned(9 downto 0);
 	VGA_B : OUT unsigned(9 downto 0);
@@ -28,8 +29,8 @@ PORT(
 	UP, DOWN : IN STD_LOGIC;
 	UPd, DOWNd : IN STD_LOGIC;
 	PIX_X, PIX_Y : IN integer ;
-	VGA_CLK : IN std_logic;
-	clk:IN std_logic
+	MCLK : IN std_logic;
+	clk_ball:IN std_logic
 );
 END VGA_ctrl;
 ARCHITECTURE ARCH of VGA_ctrl IS
@@ -38,40 +39,56 @@ ARCHITECTURE ARCH of VGA_ctrl IS
 	"0000000000", -- WHITE
 	"1111111111" -- BLACK
 	);
-	SIGNAL posbX : integer := Ball_I_X;
-	SIGNAL posbY : integer := Ball_I_Y;
+	SIGNAL ball_clk : STD_logic;
 begin
-	PROCESS (VGA_CLK,posbX,posbY)
-	VARIABLE posX : integer := Bar_I_X;
-	VARIABLE posY : integer := Bar_I_Y;
-	VARIABLE posdX : integer := Bard_I_X;
-	VARIABLE posdY : integer := Bard_I_Y;
+	PROCESS (MCLK, UP, UPd, DOWN, DOWNd, clk_ball)
+	VARIABLE barLeft_X : integer := Bar_I_X;
+	VARIABLE barLeft_Y : integer := Bar_I_Y;
+	VARIABLE barRight_X : integer := Bard_I_X;
+	VARIABLE barRight_Y : integer := Bard_I_Y;
+	VARIABLE ball_X: integer := Ball_I_X;
+	VARIABLE ball_Y: integer := Ball_I_Y;
+	VARIABLE ballSpeed_X: integer := Ball_Speed_X_I;
+	VARIABLE ballSpeed_Y: integer := Ball_Speed_Y_I;
+	
 	BEGIN
-		IF rising_edge(VGA_CLK) THEN
+		IF rising_edge(MCLK) THEN
 		-- BAR MOVES
-			IF UP='1' and (posY+Bar_H) < 474  THEN
-				posY:= posY+5 ;
-			ELSIF DOWN='1' and posY > 5 THEN
-				posY:= posY-5;
-			ELSIF UPd='1' and (posdY+Bard_H) < 474 THEN
-				posdY:= posdY+5 ;
-			ELSIF DOWNd='1' and posdY > 5 THEN
-				posdY:= posdY-5;
+			IF UP='1' and (barLeft_Y+Bar_H) < 474  THEN
+				barLeft_Y:= barLeft_Y+5 ;
+			ELSIF DOWN='1' and barLeft_Y > 5 THEN
+				barLeft_Y:= barLeft_Y-5;
 			END IF;
+			IF UPd='1' and (barRight_Y+Bard_H) < 474 THEN
+				barRight_Y:= barRight_Y+5 ;
+			ELSIF DOWNd='1' and barRight_Y > 5 THEN
+				barRight_Y:= barRight_Y-5;
+			END IF;
+		-- BALL
+			IF clk_ball='1' and (ball_X+Ball_W) < 634 and ballSpeed_X >0 THEN
+				ball_X:=ball_X+ballSpeed_X;
+			ELSIF clk_ball='1' and (ball_X+Ball_W) >= 634 and ballSpeed_X >0 THEN
+				ballSpeed_X:= -ballSpeed_X;
+			ELSIF clk_ball='1' and (ball_X) > 5 and ballSpeed_X < 0 THEN
+				ball_X:=ball_X+ballSpeed_X;
+			ELSIF clk_ball='1'and (ball_X) <= 5 and ballSpeed_X <0 THEN
+				ballSpeed_X:= -ballSpeed_X;
+			END IF;
+			---ball_Y:=ball_Y+Ball_Speed_Y;
 		-- PRINTING ON THE SCREEN
-			IF (PIX_X < 5 or PIX_X >634 or PIX_Y <5 or PIX_Y > 474) THEN 
+			IF (PIX_X < 5 or PIX_X >634 or PIX_Y <5 or PIX_Y > 474) THEN -- white rectangle
 				VGA_R<= MALUT(1);
 				VGA_B<= MALUT(1);
 				VGA_G<= MALUT(1);
-			ELSIF (PIX_X >= Bar_I_X and PIX_X <=(Bar_I_X+Bar_W)) and (PIX_Y >=posY and PIX_Y <= (posY+Bar_H)) THEN
+			ELSIF (PIX_X >= Bar_I_X and PIX_X <=(Bar_I_X+Bar_W)) and (PIX_Y >=barLeft_Y and PIX_Y <= (barLeft_Y+Bar_H)) THEN -- left bar
 				VGA_R<= MALUT(1);
 				VGA_B<= MALUT(1);
 				VGA_G<= MALUT(1);
-			ELSIF (PIX_X >= Bard_I_X and PIX_X <=(Bard_I_X+Bard_W)) and (PIX_Y >=posdY and PIX_Y <= (posdY+Bard_H)) THEN
+			ELSIF (PIX_X >= Bard_I_X and PIX_X <=(Bard_I_X+Bard_W)) and (PIX_Y >=barRight_Y and PIX_Y <= (barRight_Y+Bard_H)) THEN -- right bar
 				VGA_R<= MALUT(1);
 				VGA_B<= MALUT(1);
 				VGA_G<= MALUT(1);
-			ELSIF (PIX_X >= posbX and PIX_X <=(posbX+Ball_W)) and (PIX_Y >=posbY and PIX_Y <= (posbY+Ball_H)) THEN
+			ELSIF (PIX_X >= ball_X and PIX_X <=(ball_X+Ball_W)) and (PIX_Y >=ball_Y and PIX_Y <= (ball_Y+Ball_H)) THEN -- ball
 				VGA_R<= MALUT(1);
 				VGA_B<= MALUT(1);
 				VGA_G<= MALUT(1);
@@ -82,17 +99,5 @@ begin
 			END IF;
 		END IF;
 	END PROCESS;
-	PROCESS(clk)
-		VARIABLE timeCount : integer:=0;
-	   begIN
-			if rising_edge(clk)then
-				timeCount:=timeCount+1;
-			end if;
---			if timeCount=2 then
-			--posbX<=posbX+100;
-			--posbY<=posbY+100;
-			posbX<=posbX+100;
-			posbY<=posbY+100;
-			--end if;
-	end proCESS;
+
 END ARCH;
