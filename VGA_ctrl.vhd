@@ -20,7 +20,7 @@ ENTITY VGA_ctrl IS
 		Ball_W:	INTEGER:=10;  	-- width of the ball
 		Ball_Speed_X_I:	INTEGER:=-5;  	-- bar speed X
 		Ball_Speed_Y_I:	INTEGER:=0;  	-- bar speed Y
-		Ball_I_X:	INTEGER:=220;  	-- x bar position
+		Ball_I_X:	INTEGER:=317;  	-- x bar position
 		Ball_I_Y:	INTEGER:=220);  -- y bar postion
 PORT(
 	VGA_R : OUT unsigned(9 downto 0);
@@ -50,6 +50,7 @@ begin
 	VARIABLE ball_Y: integer := Ball_I_Y;
 	VARIABLE ballSpeed_X: integer := Ball_Speed_X_I;
 	VARIABLE ballSpeed_Y: integer := Ball_Speed_Y_I;
+	VARIABLE collisionDetected: integer := 0;
 	
 	BEGIN
 		IF rising_edge(MCLK) THEN
@@ -64,27 +65,37 @@ begin
 			ELSIF DOWNd='1' and barRight_Y > 5 THEN
 				barRight_Y:= barRight_Y-5;
 			END IF;
-		-- BALL
+		-- BALL --END OF COURSE
 			IF clk_ball='1' and (ball_X+Ball_W) < 634 and ballSpeed_X >0 THEN
 				ball_X:=ball_X+ballSpeed_X;
+				collisionDetected:=0;
 			ELSIF clk_ball='1' and (ball_X+Ball_W) >= 634 and ballSpeed_X >0 THEN
 				ballSpeed_X:= -ballSpeed_X;
+				ball_X:=Ball_I_X;
 			ELSIF clk_ball='1' and (ball_X) > 5 and ballSpeed_X < 0 THEN
 				ball_X:=ball_X+ballSpeed_X;
+				collisionDetected:=0;
 			ELSIF clk_ball='1'and (ball_X) <= 5 and ballSpeed_X <0 THEN
 				ballSpeed_X:= -ballSpeed_X;
+				ball_X:=Ball_I_X;
+			END IF;
+		-- BALL COLLISION
+			IF (((ball_X+Ball_W) >= (barRight_X) and (ball_Y+Ball_H) >= (barRight_Y) and (ball_Y) <=(barRight_Y+Bar_H)) or ((ball_X) <= (barLeft_X+Bar_W) and (ball_Y+Ball_H) >= (barLeft_Y) and (ball_Y) <=(barLeft_Y+Bar_H))) and collisionDetected = 0 THEN
+				ballSpeed_X:= -ballSpeed_X;
+				collisionDetected:=1;
 			END IF;
 			---ball_Y:=ball_Y+Ball_Speed_Y;
+			
 		-- PRINTING ON THE SCREEN
 			IF (PIX_X < 5 or PIX_X >634 or PIX_Y <5 or PIX_Y > 474) THEN -- white rectangle
 				VGA_R<= MALUT(1);
 				VGA_B<= MALUT(1);
 				VGA_G<= MALUT(1);
-			ELSIF (PIX_X >= Bar_I_X and PIX_X <=(Bar_I_X+Bar_W)) and (PIX_Y >=barLeft_Y and PIX_Y <= (barLeft_Y+Bar_H)) THEN -- left bar
+			ELSIF (PIX_X >= barLeft_X and PIX_X <=(barLeft_X+Bar_W)) and (PIX_Y >=barLeft_Y and PIX_Y <= (barLeft_Y+Bar_H)) THEN -- left bar
 				VGA_R<= MALUT(1);
 				VGA_B<= MALUT(1);
 				VGA_G<= MALUT(1);
-			ELSIF (PIX_X >= Bard_I_X and PIX_X <=(Bard_I_X+Bard_W)) and (PIX_Y >=barRight_Y and PIX_Y <= (barRight_Y+Bard_H)) THEN -- right bar
+			ELSIF (PIX_X >= barRight_X and PIX_X <=(barRight_X+Bard_W)) and (PIX_Y >=barRight_Y and PIX_Y <= (barRight_Y+Bard_H)) THEN -- right bar
 				VGA_R<= MALUT(1);
 				VGA_B<= MALUT(1);
 				VGA_G<= MALUT(1);
