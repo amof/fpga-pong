@@ -90,7 +90,7 @@ begin
 					ELSIF (ball_Y+(Ball_H)/2) < (barRight_Y+(Bar_H/2))-10 THEN -- IF the ball is above the center of the bar
 						deltaCollision:=(barRight_Y+(Bar_H/2))-(ball_Y+(Ball_H/2));
 						ballSpeed_Y := -Ball_Speed_Y_I-deltaCollision/4;
-					ELSE
+					ELSE -- Ball in the center
 						deltaCollision:=0;
 						ballSpeed_Y := 0;
 					END IF ;
@@ -103,7 +103,7 @@ begin
 					ELSIF (ball_Y+(Ball_H)/2) < (barLeft_Y+(Bar_H/2))-10 THEN -- IF the ball is above the center of the bar
 						deltaCollision:=(barLeft_Y+(Bar_H/2))-(ball_Y+(Ball_H/2));
 						ballSpeed_Y := -Ball_Speed_Y_I-deltaCollision/4;
-					ELSE
+					ELSE -- ball in the center
 						deltaCollision:=0;
 						ballSpeed_Y := 0;
 					END IF ;	
@@ -111,8 +111,10 @@ begin
 				END IF;
 				collisionDetected:=1;
 			END IF;
-			---ball_Y:=ball_Y+Ball_Speed_Y;
-			--ballSpeed_Y:= -Ball_Speed_Y_I-(deltaCollision/5);
+		-- BALL COLLIDE WITH TOP OR BOTTOM OF SCREEN
+			IF ball_Y <= 5 or (ball_Y) >= 474 THEN -- TOP OF THE SCREEN
+				ballSpeed_Y := - ballSpeed_Y;
+			END IF;
 		-- PRINTING ON THE SCREEN
 			IF (PIX_X < 5 or PIX_X >634 or PIX_Y <5 or PIX_Y > 474) THEN -- white rectangle
 				VGA_R<= MALUT(1);
