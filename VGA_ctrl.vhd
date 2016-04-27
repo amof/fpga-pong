@@ -18,10 +18,10 @@ ENTITY VGA_ctrl IS
 	-- BALL
 		Ball_H:	INTEGER:=10;  	-- height of the ball
 		Ball_W:	INTEGER:=10;  	-- width of the ball
-		Ball_Speed_X_I:	INTEGER:=-5;  	-- bar speed X
-		Ball_Speed_Y_I:	INTEGER:=0;  	-- bar speed Y
-		Ball_I_X:	INTEGER:=317;  	-- x bar position
-		Ball_I_Y:	INTEGER:=220);  -- y bar postion
+		Ball_Speed_X_I:	INTEGER:=5;  	-- ball speed X -> initially move to left
+		Ball_Speed_Y_I:	INTEGER:=5;  	-- ball speed Y
+		Ball_I_X:	INTEGER:=317;  	-- x ballbar position
+		Ball_I_Y:	INTEGER:=220);  -- y ball postion
 PORT(
 	VGA_R : OUT unsigned(9 downto 0);
 	VGA_B : OUT unsigned(9 downto 0);
@@ -49,43 +49,70 @@ begin
 	VARIABLE ball_X: integer := Ball_I_X;
 	VARIABLE ball_Y: integer := Ball_I_Y;
 	VARIABLE ballSpeed_X: integer := Ball_Speed_X_I;
-	VARIABLE ballSpeed_Y: integer := Ball_Speed_Y_I;
+	VARIABLE ballSpeed_Y: integer := 0;
+	VARIABLE deltaCollision: integer :=0;
 	VARIABLE collisionDetected: integer := 0;
 	
 	BEGIN
 		IF rising_edge(MCLK) THEN
 		-- BAR MOVES
-			IF UP='1' and (barLeft_Y+Bar_H) < 474  THEN
+			IF UP='1' and (barLeft_Y+Bar_H) < 474  THEN -- LEFT BAR
 				barLeft_Y:= barLeft_Y+5 ;
 			ELSIF DOWN='1' and barLeft_Y > 5 THEN
 				barLeft_Y:= barLeft_Y-5;
 			END IF;
-			IF UPd='1' and (barRight_Y+Bard_H) < 474 THEN
+			IF UPd='1' and (barRight_Y+Bard_H) < 474 THEN -- RIGHT BAR
 				barRight_Y:= barRight_Y+5 ;
 			ELSIF DOWNd='1' and barRight_Y > 5 THEN
 				barRight_Y:= barRight_Y-5;
 			END IF;
-		-- BALL --END OF COURSE
-			IF clk_ball='1' and (ball_X+Ball_W) < 634 and ballSpeed_X >0 THEN
+		-- BALL MOVEMENT
+			IF clk_ball='1' and (ball_X) > 5 and (ball_X+Ball_W) < 634 THEN  -- CALCULATE THE NEXT BALL POSITION
 				ball_X:=ball_X+ballSpeed_X;
+				ball_Y:=ball_Y+ballSpeed_Y;
 				collisionDetected:=0;
-			ELSIF clk_ball='1' and (ball_X+Ball_W) >= 634 and ballSpeed_X >0 THEN
-				ballSpeed_X:= -ballSpeed_X;
-				ball_X:=Ball_I_X;
-			ELSIF clk_ball='1' and (ball_X) > 5 and ballSpeed_X < 0 THEN
-				ball_X:=ball_X+ballSpeed_X;
-				collisionDetected:=0;
-			ELSIF clk_ball='1'and (ball_X) <= 5 and ballSpeed_X <0 THEN
-				ballSpeed_X:= -ballSpeed_X;
-				ball_X:=Ball_I_X;
+			ELSIF clk_ball='1' and ((ball_X+Ball_W) >= 634 or ball_X <=5) THEN -- GOAL ! RESET !
+				ballSpeed_Y:= 0 ; -- RESET BALL SPEED Y
+				ball_X:=Ball_I_X; -- RESET BALL POSITION X
+				ball_Y:=Ball_I_Y; -- RESET BALL POSITION Y
+				IF ballSpeed_X >= 0 THEN
+					ballSpeed_X:= -Ball_Speed_X_I; -- RESET BALL SPEED X
+				ELSIF ballSpeed_X <0 THEN 
+					ballSpeed_X:= Ball_Speed_X_I; -- RESET BALL SPEED X
+				END IF;
 			END IF;
-		-- BALL COLLISION
-			IF (((ball_X+Ball_W) >= (barRight_X) and (ball_Y+Ball_H) >= (barRight_Y) and (ball_Y) <=(barRight_Y+Bar_H)) or ((ball_X) <= (barLeft_X+Bar_W) and (ball_Y+Ball_H) >= (barLeft_Y) and (ball_Y) <=(barLeft_Y+Bar_H))) and collisionDetected = 0 THEN
-				ballSpeed_X:= -ballSpeed_X;
+		-- BALL COLLISION with bar
+			IF (((ball_X+Ball_W) >= (barRight_X) and (ball_Y+Ball_H) >= (barRight_Y) and (ball_Y) <=(barRight_Y+Bar_H)) or ((ball_X) <= (barLeft_X+Bar_W) and (ball_Y+Ball_H) >= (barLeft_Y) and (ball_Y) <=(barLeft_Y+Bar_H))) and collisionDetected = 0 THEN -- RIGHT BAR
+				IF (ball_X+Ball_W) >= (barRight_X) THEN -- ball touch bar right
+					IF (ball_Y+(Ball_H)/2) >= (barRight_Y+(Bar_H/2))+10 THEN -- BALL UNDER CENTER OF BAR
+						deltaCollision:=(ball_Y+(Ball_H/2))-(barRight_Y+(Bar_H/2));
+						ballSpeed_Y := Ball_Speed_Y_I+deltaCollision/4;
+					ELSIF (ball_Y+(Ball_H)/2) < (barRight_Y+(Bar_H/2))-10 THEN -- IF the ball is above the center of the bar
+						deltaCollision:=(barRight_Y+(Bar_H/2))-(ball_Y+(Ball_H/2));
+						ballSpeed_Y := -Ball_Speed_Y_I-deltaCollision/4;
+					ELSE
+						deltaCollision:=0;
+						ballSpeed_Y := 0;
+					END IF ;
+					ballSpeed_X:= -Ball_Speed_X_I-(deltaCollision/4);
+					
+				ELSIF (ball_X) <= (barLeft_X+Bar_W) THEN -- ball touch bar left
+					IF (ball_Y+(Ball_H)/2) >= (barLeft_Y+(Bar_H/2))+10 THEN -- BALL UNDER CENTER OF BAR
+						deltaCollision:=(ball_Y+(Ball_H/2))-(barLeft_Y+(Bar_H/2));
+						ballSpeed_Y := Ball_Speed_Y_I+deltaCollision/4;
+					ELSIF (ball_Y+(Ball_H)/2) < (barLeft_Y+(Bar_H/2))-10 THEN -- IF the ball is above the center of the bar
+						deltaCollision:=(barLeft_Y+(Bar_H/2))-(ball_Y+(Ball_H/2));
+						ballSpeed_Y := -Ball_Speed_Y_I-deltaCollision/4;
+					ELSE
+						deltaCollision:=0;
+						ballSpeed_Y := 0;
+					END IF ;	
+					ballSpeed_X:= Ball_Speed_X_I+(deltaCollision/4);
+				END IF;
 				collisionDetected:=1;
 			END IF;
 			---ball_Y:=ball_Y+Ball_Speed_Y;
-			
+			--ballSpeed_Y:= -Ball_Speed_Y_I-(deltaCollision/5);
 		-- PRINTING ON THE SCREEN
 			IF (PIX_X < 5 or PIX_X >634 or PIX_Y <5 or PIX_Y > 474) THEN -- white rectangle
 				VGA_R<= MALUT(1);
