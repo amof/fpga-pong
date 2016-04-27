@@ -33,7 +33,7 @@ begin
 		ELSE
 			IF rising_edge(MCLK) THEN
 			timeCount := timeCount+1;
-				IF timeCount = 2500000 THEN 
+				IF timeCount = 999999 THEN 
 					timeCount:=0;
 					PREC_BOUTON0 <= BOUTONS(0);
 					PREC_BOUTON1 <= BOUTONS(1);
