@@ -43,7 +43,7 @@ ARCHITECTURE ARCH of VGA_ctrl IS
 	"0000000000", -- WHITE
 	"1111111111" -- BLACK
 	);
-	SIGNAL ball_clk : STD_logic;
+
 begin
 	PROCESS (MCLK, UP, UPd, DOWN, DOWNd, clk_ball)
 	VARIABLE barLeft_Y : integer := Bar_Left_Y;
@@ -80,9 +80,9 @@ begin
 				ball_X:=Ball_I_X; -- RESET BALL POSITION X
 				ball_Y:=Ball_I_Y; -- RESET BALL POSITION Y
 				IF ballSpeed_X >= 0 THEN
-					ballSpeed_X:= -Ball_Speed_X_I; -- RESET BALL SPEED X
+					ballSpeed_X:= -Ball_Speed_X_I; -- RESET BALL SPEED X and speed is opposite
 				ELSIF ballSpeed_X <0 THEN 
-					ballSpeed_X:= Ball_Speed_X_I; -- RESET BALL SPEED X
+					ballSpeed_X:= Ball_Speed_X_I; -- RESET BALL SPEED X and speed is opposite
 				END IF;
 			END IF;
 			
@@ -118,8 +118,8 @@ begin
 			END IF;
 			
 		-- BALL COLLIDE WITH TOP OR BOTTOM OF SCREEN
-			IF ball_Y <= Screen_Top or (ball_Y+Ball_H) >= Screen_Bottom THEN -- TOP OF THE SCREEN
-				ballSpeed_Y := - ballSpeed_Y;
+			IF ball_Y <= Screen_Top or (ball_Y+Ball_H) >= Screen_Bottom THEN -- TOP OR BOTTOM OF THE SCREEN
+				ballSpeed_Y := - ballSpeed_Y; -- inverse the speed in y
 			END IF;
 			
 		-- PRINTING ON THE SCREEN
